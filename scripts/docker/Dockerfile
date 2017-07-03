@@ -1,20 +1,16 @@
-FROM pdal/pdal:1.4
+FROM pdal/master:latest
 MAINTAINER Connor Manning <connor@hobu.co>
 
-RUN apt-get update && apt-get install -y \
-    git \
-    build-essential \
-    cmake \
-    liblzma-dev \
-    libjsoncpp-dev \
-    libcurl4-openssl-dev
+ENV CC clang
+ENV CXX clang++
 
-ENV CC gcc
-ENV CXX g++
+RUN mkdir -p /root/.ssh
+COPY entwine-deploy.key /root/.ssh/entwine_key
+COPY ssh_config /root/.ssh/config
+RUN chmod 600 /root/.ssh/entwine_key
 
-ADD http://www.timeapi.org/utc/now /tmp/bust-cache
-RUN git clone https://github.com/connormanning/entwine.git /var/entwine && \
-    cd /var/entwine && \
+RUN git clone git@entwine:connormanning/entwine.git && \
+    cd entwine && \
     mkdir build && \
     cd build && \
     cmake -G "Unix Makefiles" \
@@ -22,6 +18,3 @@ RUN git clone https://github.com/connormanning/entwine.git /var/entwine && \
         -DCMAKE_BUILD_TYPE=Release .. && \
     make -j4 && \
     make install
-
-ENTRYPOINT ["entwine"]
-
